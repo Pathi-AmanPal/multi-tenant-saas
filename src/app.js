@@ -14,18 +14,19 @@ app.get('/health', (req, res) => {
 
 // Routes
 const tenantRoutes = require('./routes/tenant.routes');
-const protectedRoutes = require('./routes/protected.routes');
 const tenantResolver = require('./middleware/tenant.middleware');
+const authMiddleware = require('./middleware/auth.middleware');
 const userRoutes = require('./routes/user.routes');
+const authRoutes = require('./routes/auth.routes');
 
 // Public routes
 app.use('/api/tenants', tenantRoutes);
 
-// Protected routes
-app.use('/api', tenantResolver, protectedRoutes);
+// Login still requires tenant header
+app.use('/api/auth', tenantResolver, authRoutes);
 
-// Protected user routes
-app.use('/api/users', tenantResolver, userRoutes);
+// Protected routes now require JWT
+app.use('/api/users', authMiddleware, userRoutes);
 
 // 404 handler (MUST come after routes)
 app.use((req, res) => {

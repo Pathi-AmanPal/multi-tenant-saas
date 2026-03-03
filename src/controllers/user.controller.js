@@ -2,13 +2,14 @@ const userService = require('../services/user.service');
 
 async function createUser(req, res, next) {
   try {
-    const tenantId = req.tenant.id;   // injected by tenant middleware
-    const { name, email, role } = req.body;
+    const tenantId = req.user.tenantId;   
+    const { name, email, password, role } = req.body;
 
     const user = await userService.createUser(
       tenantId,
       name,
       email,
+      password,
       role
     );
 
@@ -24,7 +25,7 @@ async function createUser(req, res, next) {
 
 async function getUsers(req, res, next) {
   try {
-    const tenantId = req.tenant.id;
+    const tenantId = req.user.tenantId;
 
     const users = await userService.getUsersByTenant(tenantId);
 
