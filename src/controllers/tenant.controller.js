@@ -37,6 +37,8 @@ async function getAllTenants(req, res, next) {
   }
 }
 
+
+
 module.exports = {
   createTenant,
   getAllTenants  
