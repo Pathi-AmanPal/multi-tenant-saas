@@ -1,8 +1,22 @@
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const app = express();
+
+// Rate limiter configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: {
+    success: false,
+    message: "Too many requests. Try again later."
+  }
+});
 
 // Middleware
 app.use(express.json());
+app.use(helmet());
+app.use(limiter);
 
 // Health check
 app.get('/health', (req, res) => {
