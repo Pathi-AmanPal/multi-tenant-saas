@@ -33,8 +33,20 @@ async function findByEmailAndTenant(tenantId, email) {
   return result.rows[0];
 }
 
+async function findById(userId) {
+  const result = await pool.query(
+    `SELECT id, tenant_id, role
+     FROM users
+     WHERE id = $1`,
+    [userId]
+  );
+
+  return result.rows[0];
+}
+
 module.exports = {
   createUser,
   getUsersByTenant,
-  findByEmailAndTenant
+  findByEmailAndTenant,
+  findById
 };
