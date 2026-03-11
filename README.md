@@ -1,5 +1,7 @@
 # 🔥 MULTI-TENANT SAAS BACKEND — ENTERPRISE-GRADE ARCHITECTURE
 
+[![Backend CI](https://github.com/Pathi-AmanPal/multi-tenant-saas-backend/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Pathi-AmanPal/multi-tenant-saas-backend/actions/workflows/backend-ci.yml)
+
 > Not a tutorial project.
 > Not a CRUD demo.
 > This is a production-style multi-tenant backend engineered with security, isolation, and scalability as first-class concerns.
