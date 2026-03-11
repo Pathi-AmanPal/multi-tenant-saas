@@ -10,16 +10,30 @@ async function createUser(tenantId, name, email, password, role) {
     throw error;
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  try {
 
-  return await userRepository.createUser(
-    tenantId,
-    name,
-    email,
-    hashedPassword,
-    role
-  );
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    return await userRepository.createUser(
+      tenantId,
+      name,
+      email,
+      hashedPassword,
+      role
+    );
+
+  } catch (error) {
+
+    // PostgreSQL unique constraint violation
+    if (error.code === '23505') {
+      const err = new Error('Email already exists for this tenant');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    throw error;
+  }
 }
 
 async function getUsersByTenant(tenantId) {
