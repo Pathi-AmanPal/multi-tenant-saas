@@ -1,11 +1,13 @@
+const requestLogger = require("./middleware/requestLogger.middleware");
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+
 const app = express();
 
-// Rate limiter configuration
+// 🔐 Global Rate limiter
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     success: false,
@@ -13,7 +15,18 @@ const limiter = rateLimit({
   }
 });
 
+// 🔥 Auth-specific limiter (STRICT)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: "Too many login attempts. Try again later."
+  }
+});
+
 // Middleware
+app.use(requestLogger);
 app.use(express.json());
 app.use(helmet());
 app.use(limiter);
@@ -30,19 +43,30 @@ app.get('/health', (req, res) => {
 const tenantRoutes = require('./routes/tenant.routes');
 const tenantResolver = require('./middleware/tenant.middleware');
 const authMiddleware = require('./middleware/auth.middleware');
+const validateTenantAccess = require('./middleware/tenantAccess.middleware'); // ✅ NEW
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
 
 // Public routes
 app.use('/api/tenants', tenantRoutes);
 
-// Login still requires tenant header
-app.use('/api/auth', tenantResolver, authRoutes);
+// 🔥 Apply auth limiter + tenant resolver
+if (process.env.NODE_ENV === "test") {
+  app.use('/api/auth', tenantResolver, authRoutes);
+} else {
+  app.use('/api/auth', authLimiter, tenantResolver, authRoutes);
+}
 
-// Protected routes now require JWT
-app.use('/api/users', authMiddleware, userRoutes);
+// 🔥 CRITICAL SECURITY FIX (tenant validation added)
+app.use(
+  '/api/users',
+  tenantResolver,
+  authMiddleware,
+  validateTenantAccess, // 🚨 prevents cross-tenant attack
+  userRoutes
+);
 
-// 404 handler (MUST come after routes)
+// 404
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -50,7 +74,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handler (last)
+// Error handler
 const errorHandler = require('./middleware/error.middleware');
 app.use(errorHandler);
 

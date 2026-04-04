@@ -1,8 +1,10 @@
 const userService = require('../services/user.service');
 
+// 🔥 Create user
 async function createUser(req, res, next) {
   try {
-    const tenantId = req.user.tenantId;   
+    const tenantId = req.tenant.id; // ✅ FIXED
+
     const { name, email, password, role } = req.body;
 
     const user = await userService.createUser(
@@ -15,25 +17,24 @@ async function createUser(req, res, next) {
 
     res.status(201).json({
       success: true,
-      data: user
+      data: user,
     });
-
   } catch (error) {
     next(error);
   }
 }
 
+// 🔥 Get users
 async function getUsers(req, res, next) {
   try {
-    const tenantId = req.user.tenantId;
+    const tenantId = req.tenant.id; // ✅ FIXED
 
     const users = await userService.getUsersByTenant(tenantId);
 
     res.json({
       success: true,
-      data: users
+      data: users,
     });
-
   } catch (error) {
     next(error);
   }
@@ -41,5 +42,5 @@ async function getUsers(req, res, next) {
 
 module.exports = {
   createUser,
-  getUsers
+  getUsers,
 };

@@ -4,22 +4,21 @@ const router = express.Router();
 const authorizeRole = require('../middleware/rbac.middleware');
 const validate = require('../middleware/validate.middleware');
 const { createUserSchema } = require('../validators/user.validator');
-const authMiddleware = require('../middleware/auth.middleware');
 
 const userController = require('../controllers/user.controller');
 
+// 🔥 Create user (ADMIN only)
 router.post(
   '/',
-  authMiddleware,
-  authorizeRole('ADMIN'),
+  authorizeRole('admin'), // ✅ fixed casing
   validate(createUserSchema),
   userController.createUser
 );
 
+// 🔥 Get users
 router.get(
   '/',
-  authMiddleware,
-  authorizeRole('ADMIN', 'USER'),
+  authorizeRole('admin', 'user'),
   userController.getUsers
 );
 
