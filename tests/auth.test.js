@@ -80,7 +80,3 @@ test("Refresh token rotation should invalidate old token", async () => {
 });
 
 
-afterAll(async () => {
-  const pool = require("../src/config/db");
-  await pool.end();
-});

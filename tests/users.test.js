@@ -29,10 +29,6 @@ describe("Users API", () => {
   });
 });
 
-afterAll(async () => {
-  const pool = require("../src/config/db");
-  await pool.end();
-});
 
 test("Cross-tenant access should be blocked", async () => {
   const tenantA = await createTestTenant();
