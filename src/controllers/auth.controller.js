@@ -67,6 +67,15 @@ async function login(req, res, next) {
       success: true,
       accessToken,
       refreshToken,
+      tenant: {
+        id: user.tenant_id,
+        uuid: req.tenant.uuid,
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
     });
 
   } catch (error) {
@@ -139,7 +148,6 @@ async function refresh(req, res, next) {
       newHash,
       expiresAt
     );
-
     // 🔥 ROTATION END
 
     const accessToken = jwt.sign(
@@ -156,6 +164,15 @@ async function refresh(req, res, next) {
       success: true,
       accessToken,
       refreshToken: newRefreshToken,
+      tenant: {
+        id: user.tenant_id,
+        uuid: req.tenant.uuid,
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
     });
 
   } catch (error) {
@@ -163,6 +180,7 @@ async function refresh(req, res, next) {
   }
 }
 
+// 🚪 LOGOUT
 async function logout(req, res, next) {
   try {
     const { refreshToken } = req.body;

@@ -1,18 +1,27 @@
+const express = require("express");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+
 const requestLogger = require("./middleware/requestLogger.middleware");
-const express = require('express');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const tenantResolver = require("./middleware/tenant.middleware");
+const authMiddleware = require("./middleware/auth.middleware");
+const validateTenantAccess = require("./middleware/tenantAccess.middleware");
+const errorHandler = require("./middleware/error.middleware");
+
+const tenantRoutes = require("./routes/tenant.routes");
+const userRoutes = require("./routes/user.routes");
+const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 
-// 🔐 Global Rate limiter
+// 🔐 Global Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     success: false,
-    message: "Too many requests. Try again later."
-  }
+    message: "Too many requests. Try again later.",
+  },
 });
 
 // 🔥 Auth-specific limiter (STRICT)
@@ -21,61 +30,64 @@ const authLimiter = rateLimit({
   max: 5,
   message: {
     success: false,
-    message: "Too many login attempts. Try again later."
-  }
+    message: "Too many login attempts. Try again later.",
+  },
 });
 
-// Middleware
+// ======================
+// MIDDLEWARE
+// ======================
 app.use(requestLogger);
 app.use(express.json());
 app.use(helmet());
 app.use(limiter);
 
-// Health check
-app.get('/health', (req, res) => {
+// ======================
+// HEALTH CHECK
+// ======================
+app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Server is healthy',
+    message: "Server is healthy",
   });
 });
 
-// Routes
-const tenantRoutes = require('./routes/tenant.routes');
-const tenantResolver = require('./middleware/tenant.middleware');
-const authMiddleware = require('./middleware/auth.middleware');
-const validateTenantAccess = require('./middleware/tenantAccess.middleware'); // ✅ NEW
-const userRoutes = require('./routes/user.routes');
-const authRoutes = require('./routes/auth.routes');
+// ======================
+// ROUTES
+// ======================
 
-// Public routes
-app.use('/api/tenants', tenantRoutes);
+// Public tenant routes
+app.use("/api/tenants", tenantRoutes);
 
-// 🔥 Apply auth limiter + tenant resolver
+// 🔐 Auth routes (tenant-aware + rate limited)
 if (process.env.NODE_ENV === "test") {
-  app.use('/api/auth', tenantResolver, authRoutes);
+  app.use("/api/auth", tenantResolver, authRoutes);
 } else {
-  app.use('/api/auth', authLimiter, tenantResolver, authRoutes);
+  app.use("/api/auth", authLimiter, tenantResolver, authRoutes);
 }
 
-// 🔥 CRITICAL SECURITY FIX (tenant validation added)
+// 🔥 Protected routes (CRITICAL SECURITY CHAIN)
 app.use(
-  '/api/users',
+  "/api/users",
   tenantResolver,
   authMiddleware,
-  validateTenantAccess, // 🚨 prevents cross-tenant attack
+  validateTenantAccess, // 🚨 prevents cross-tenant access
   userRoutes
 );
 
-// 404
+// ======================
+// 404 HANDLER
+// ======================
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found',
+    message: "Route not found",
   });
 });
 
-// Error handler
-const errorHandler = require('./middleware/error.middleware');
+// ======================
+// ERROR HANDLER (LAST)
+// ======================
 app.use(errorHandler);
 
 module.exports = app;
