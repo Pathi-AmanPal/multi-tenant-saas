@@ -3,14 +3,18 @@ name: Backend CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'backend/**'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    steps:
+    defaults:
+      run:
+        working-directory: backend
 
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -24,3 +28,6 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Run Tests
+        run: npm test
