@@ -1,6 +1,20 @@
 {
+  "name": "saas-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+
   "dependencies": {
     "@tanstack/react-query": "^5.99.0",
     "react-router-dom": "^7.14.0"
+  },
+
+  "devDependencies": {
+    "vite": "^5.0.0"
   }
 }
